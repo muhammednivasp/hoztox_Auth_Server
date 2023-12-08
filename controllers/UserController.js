@@ -7,6 +7,7 @@ dotenv.config();
 import NodeMailer from '../utills/NodeMailer.js';
 import UserModel from '../model/UserModel.js'
 import OtpModel from '../model/Otp.js';
+import EventModal from '../model/EventModel.js'
 
 import { OtpGenerator } from '../utills/OtpGenerator.js';
 
@@ -148,7 +149,7 @@ export default {
             const token = req.headers["authorization"]?.split(" ")[1];
             if (!token) {
                 return res.status(401).json({
-                    message: "User Authentication failed: Token not found",
+                    message: "User Authentication failed",
                     success: false,
                 });
             }
@@ -156,7 +157,7 @@ export default {
             jwt.verify(token, secretKey, (err, decoded) => {
                 if (err) {
                     return res.status(401).json({
-                        message: "User Authentication failed: Invalid token",
+                        message: "User Authentication failed",
                         success: false,
                     });
                 } else {
@@ -227,5 +228,21 @@ export default {
             });
         }
 
+    },
+    EventGet:async(req,res)=>{
+        try {
+            const Events = await EventModal.find().sort({eventDateTime:1})
+            console.log(Events);
+            return res.status(200).json({Events,
+                message: "Events get successfully",
+                success: true,
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(401).json({
+                message: "Events get error",
+                success: false,
+            });
+        }
     }
 }
