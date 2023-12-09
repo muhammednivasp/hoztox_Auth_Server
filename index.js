@@ -10,7 +10,7 @@ const app = express()
 app.use(express.json({ limit: '30mb', extended: true }));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(cors({
-  origin: [`${process.env.BASE_URL}`],
+  origin: [`${process.env.BASE_URL}` , 'https://hoztox.netlify.app/'],
   method: ["get", "post", "delete", "put", "patch"],
   credentials: true,
 }))
