@@ -14,33 +14,24 @@ export default {
     AdminLogin: async (req, res) => {
         try {
             const { password, email } = req.body;
-            // console.log(req.body, 'body');
             const adminExist = await AdminModel.findOne({ email });
-            // console.log(adminExist);
             if (!adminExist) {
                 return res.status(400).json({ message: "Admin does not exist", success: false });
             } else {
-                // console.log('email verified');
-
                 const isPasswordValid = await bcrypt.compare(password, adminExist.password);
                 if (!isPasswordValid) {
-                    // console.log('password');
                     return res.status(400).json({ message: "Incorrect password", success: false });
                 } else {
-                    // console.log('token');
-
                     let token = jwt.sign({ adminId: adminExist._id }, process.env.JwtSecretKey, { expiresIn: '1day' })
                     return res.status(200).json({ token: token, adminExist: adminExist, message: "Login successful", success: true });
                 }
             }
         } catch (error) {
-            // console.log(error);
             return res.json({ message: "Internal server error", success: false });
         }
     },
     IsAdminAuth: async (req, res) => {
         try {
-            // console.log(req.headers);
             const token = req.headers["authorization"]?.split(" ")[1];
             if (!token) {
                 return res.status(401).json({
@@ -78,14 +69,12 @@ export default {
     UsersList: async (req, res) => {
         try {
             const Users = await UserModel.find()
-            // console.log(Users);
             return res.status(200).json({
                 Users: Users,
                 message: "success",
                 success: true,
             });
         } catch (error) {
-            // console.log(error);
             return res.status(401).json({
                 message: "Users get failed",
                 success: false,
@@ -94,7 +83,6 @@ export default {
     },
     UserHandle: async (req, res) => {
         try {
-            // console.log(req.body, 'llll');
             const { _id } = req.body
             let user = await UserModel.findByIdAndUpdate({ _id });
             if (!user) {
@@ -102,7 +90,6 @@ export default {
             }
             user.block = !user.block;
             user.save().then((data) => {
-                // console.log(data, 'datas');
                 UserModel.find({}).then((users) => {
                     return res.status(200).send({ Users: users, message: "User updated successfully", success: true });
                 }).catch((err) => {
@@ -117,7 +104,6 @@ export default {
     },
     EventCreation: async (req, res) => {
         try {
-            // console.log(req.body);
             const { eventName, eventDateTime, eventDescription, eventUrl } = req.body
             await EventModel.create({
                 eventName,
@@ -127,7 +113,6 @@ export default {
             })
             return res.status(200).send({ message: "Event created successfully", success: true });
         } catch (error) {
-            // console.log(error,'llll');
             return res.status(500).send({ message: 'Event creation Failed', success: false });
         }
     }

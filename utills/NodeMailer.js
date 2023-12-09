@@ -1,10 +1,7 @@
 import nodemailer from 'nodemailer'
 
-
 export default async (email, subject, text) => {
     try {
-        console.log(process.env.HOST,'llllllllll',process.env.EMAIL_PORT)
-
         const transporter = nodemailer.createTransport({
             host: process.env.HOST,
             port: Number(process.env.EMAIL_PORT),
@@ -15,13 +12,13 @@ export default async (email, subject, text) => {
                 pass: process.env.PASS,
             },
         })
-   
-          await transporter.sendMail({
-                from: process.env.SENDER_MAIL,
-                to: email,
-                subject: subject,
-                text: text
-            })
+
+        await transporter.sendMail({
+            from: process.env.SENDER_MAIL,
+            to: email,
+            subject: subject,
+            text: text
+        })
     } catch (error) {
         console.log(error)
     }

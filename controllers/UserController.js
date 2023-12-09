@@ -14,23 +14,17 @@ import { OtpGenerator } from '../utills/OtpGenerator.js';
 export default {
     UserRegister: async (req, res) => {
         try {
-            // console.log(req.body);
             const { username, email, password, cPassword } = req.body
-            // console.log(username);
-            // console.log(OtpGenerator(),"otp");
             if (username.length !== 0 && email.length !== 0 && password.length > 4 && password === cPassword) {
                 const userExist = await UserModel.findOne({ email });
-                // console.log(userExist, 'user');
                 if (userExist) {
                     if (userExist.verified === false) {
                         const otpPin = OtpGenerator()
-                        // console.log(otpPin);
                         await OtpModel.deleteOne({ userId: userExist._id });
                         const otpCreation = await OtpModel.create({
                             userId: userExist._id,
                             otp: otpPin,
                         })
-                        // console.log(otpCreation);
                         await NodeMailer(userExist.email, "verify Email", otpCreation.otp);
                         return res.status(201).json({
                             userId: userExist._id,
@@ -44,18 +38,13 @@ export default {
                     }
                 } else {
                     const salt = await bcrypt.genSalt(10);
-                    // console.log(salt);
                     const hashedPassword = await bcrypt.hash(password, salt);
-                    // console.log(hashedPassword);
                     const newUser = await UserModel.create({ username, email, password: hashedPassword })
-                    // console.log("user created", newUser)
                     const otpPin = OtpGenerator()
-                    // console.log(otpPin, 'otppin');
                     const otpCreation = await OtpModel.create({
                         userId: newUser._id,
                         otp: otpPin,
                     })
-                    // console.log(otpCreation, "otpmodel");
                     await NodeMailer(newUser.email, "verify Email", otpCreation.otp);
                     return res.status(201).json({
                         userId: newUser._id,
@@ -66,7 +55,6 @@ export default {
                 }
 
             } else {
-                // console.log('details required');
                 return res.json({ message: "Given data is not accurate", success: false });
 
             }
@@ -76,10 +64,8 @@ export default {
     },
     VerifyOtp: async (req, res) => {
         try {
-            // console.log(req.body);
             const { otp, userId } = req.body
             const verify = await OtpModel.findOne({ otp: otp, userId: userId })
-            // console.log(verify)
             if (verify) {
                 await UserModel.updateOne({ _id: userId }, { $set: { verified: true } })
                     .then(async () => {
@@ -87,14 +73,12 @@ export default {
                             .then(() => console.log('deleted'))
                     })
                     .then(() => {
-                        // console.log('hhhhhh');
                         return res.status(200).json({
                             message: "Verified Successfully",
                             success: true
                         })
                     })
                     .catch((err) => {
-                        // console.log(err)
                         return res.status(400).json({ message: err })
                     })
             } else {
@@ -110,42 +94,30 @@ export default {
     UserLogin: async (req, res) => {
         try {
             const { password, email } = req.body;
-            console.log(req.body, 'body');
             const userExist = await UserModel.findOne({ email });
-            console.log(userExist);
             if (!userExist) {
                 return res.status(400).json({ message: "User does not exist", success: false });
             } else {
                 if (userExist.verified !== true) {
-                    console.log('verified');
                     return res.status(400).json({ message: "Please verify your account ", success: false });
                 } else if (userExist.block === true) {
-                    console.log('block');
-
                     return res.status(400).json({ message: "You are blocked", success: false });
                 } else {
-                    console.log('email verified');
-
                     const isPasswordValid = await bcrypt.compare(password, userExist.password);
                     if (!isPasswordValid) {
-                        console.log('password');
                         return res.status(400).json({ message: "Incorrect password", success: false });
                     } else {
-                        console.log('token');
-
                         let token = jwt.sign({ userId: userExist._id }, process.env.JwtSecretKey, { expiresIn: '1day' })
                         return res.status(200).json({ token: token, userExist: userExist, message: "Login successful", success: true });
                     }
                 }
             }
         } catch (error) {
-            console.log(error);
             return res.json({ message: "Internal server error", success: false });
         }
     },
     IsUserAuth: async (req, res) => {
         try {
-            console.log(req.headers);
             const token = req.headers["authorization"]?.split(" ")[1];
             if (!token) {
                 return res.status(401).json({
@@ -185,9 +157,8 @@ export default {
         }
 
     },
-    UserGet:async(req,res)=>{
+    UserGet: async (req, res) => {
         try {
-            console.log(req.headers);
             const token = req.headers["authorization"]?.split(" ")[1];
             if (!token) {
                 return res.status(401).json({
@@ -204,7 +175,6 @@ export default {
                     });
                 } else {
                     UserModel.findById({ _id: decoded.userId }).then((response) => {
-                        console.log(response);
                         if (response.block) {
                             return res.status(401).json({
                                 message: " Blocked",
@@ -214,7 +184,7 @@ export default {
                             return res.status(200).json({
                                 message: "User Authentication success",
                                 success: true,
-                                username:response.username
+                                username: response.username
                             });
                         }
                     })
@@ -229,16 +199,15 @@ export default {
         }
 
     },
-    EventGet:async(req,res)=>{
+    EventGet: async (req, res) => {
         try {
-            const Events = await EventModal.find().sort({eventDateTime:1})
-            console.log(Events);
-            return res.status(200).json({Events,
+            const Events = await EventModal.find().sort({ eventDateTime: 1 })
+            return res.status(200).json({
+                Events,
                 message: "Events get successfully",
                 success: true,
             });
         } catch (error) {
-            console.log(error);
             return res.status(401).json({
                 message: "Events get error",
                 success: false,
